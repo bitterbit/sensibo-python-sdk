@@ -9,13 +9,13 @@ class SensiboClientAPI(object):
 
     def _get(self, path, ** params):
         params['apiKey'] = self._api_key
-        response = requests.get(_SERVER + path, params = params)
+        response = requests.get(_SERVER + path, params=params)
         response.raise_for_status()
         return response.json()
 
     def _patch(self, path, data, ** params):
         params['apiKey'] = self._api_key
-        response = requests.patch(_SERVER + path, params = params, data = data)
+        response = requests.patch(_SERVER + path, params=params, data=data)
         response.raise_for_status()
         return response.json()
 
@@ -28,33 +28,33 @@ class SensiboClientAPI(object):
         return result['result']
 
     def pod_ac_state(self, podUid):
-        result = self._get("/pods/%s/acStates" % podUid, limit = 1, fields="status,reason,acState")
+        result = self._get("/pods/%s/acStates" % podUid, limit=1, fields="status,reason,acState")
         return result['result'][0]['acState']
 
     def pod_change_ac_state(self, podUid, currentAcState, propertyToChange, newValue):
-        self._patch("/pods/%s/acStates/%s" % (podUid, propertyToChange),
-                json.dumps({'currentAcState': currentAcState, 'newValue': newValue}))
+        body = json.dumps({'currentAcState': currentAcState, 'newValue': newValue})
+        self._patch("/pods/%s/acStates/%s" % (podUid, propertyToChange), body)
 
 def main():
     parser = argparse.ArgumentParser(description='Sensibo client example parser')
-    parser.add_argument('apikey', type = str)
-    parser.add_argument('-device', type = str)
+    parser.add_argument('apikey', type=str)
+    parser.add_argument('-device', type=str)
     args = parser.parse_args()
 
     client = SensiboClientAPI(args.apikey)
     devices = client.devices()
-    print "-" * 10, "devices", "-" * 10
-    print devices
+    print("-" * 10, "devices", "-" * 10)
+    print(devices)
 
     if not args.device:
         return
 
     uid = devices[args.device]
     ac_state = client.pod_ac_state(uid)
-    print "-" * 10, "AC State of %s" % args.device, "_" * 10
-    print ac_state
+    print("-" * 10, "AC State of %s" % args.device, "_" * 10)
+    print(ac_state)
 
-    client.pod_change_ac_state(uid, ac_state, "on", not ac_state['on']) 
+    client.pod_change_ac_state(uid, ac_state, "on", not ac_state['on'])
 
 if __name__ == "__main__":
     import argparse
